@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1147">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Волшебные игры — сложные</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wall:#cabdf5;
+  --gold:#ffd54a;
+  --pink:#ff8fd0;
+  --teal:#3fe0d0;
+  --violet:#a877ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Rubik',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  background:radial-gradient(120% 80% at 15% 0%,#4a3796 0%,#2a1c63 42%,#140d38 76%,#0a0620 100%);
+  background-attachment:fixed;
+  color:#fff;min-height:100vh;min-height:100dvh;overflow-x:hidden;
+  user-select:none;-webkit-user-select:none;
+}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;background:#fff;border-radius:50%;opacity:.7;animation:twinkle 3s infinite ease-in-out}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:.95;transform:scale(1)}}
+.app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:18px 16px calc(30px + env(safe-area-inset-bottom))}
+h1{
+  font-size:31px;margin:8px 0 4px;text-align:center;font-weight:800;letter-spacing:.5px;
+  background:linear-gradient(90deg,#ffd54a,#ff8fd0,#7ee8ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 10px rgba(255,140,210,.35));
+}
+.subtitle{text-align:center;margin:0 0 14px;color:#c9c0f2;font-size:15px}
+.home-header{display:flex;gap:8px;align-items:stretch;justify-content:space-between;margin:0 0 12px}
+.home-progress{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:8px 10px}
+.hp-text{display:flex;justify-content:space-between;font-size:12px;color:#e8dfff;margin:0 0 6px}
+.hp-pill{background:rgba(255,213,74,.3);border-radius:10px;padding:2px 8px;color:#ffd54a;font-weight:700}
+.hp-bar{height:8px;background:rgba(255,255,255,.12);border-radius:8px;overflow:hidden}
+.hp-fill{height:100%;background:linear-gradient(90deg,#ffd54a,#ff8fd0);width:0%}
+.hp-reset{display:block;margin:7px auto 0;padding:3px 12px;font-size:11.5px;color:#c9c0f2;background:transparent;border:1px solid rgba(255,255,255,.22);border-radius:20px;cursor:pointer;font-family:inherit}
+.hp-reset:active{transform:scale(.95);background:rgba(255,255,255,.1)}
+.btn-ghost.small{padding:8px 12px;font-size:13px;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center}
+.character-box{display:flex;gap:10px;align-items:center;margin:0 0 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:10px;justify-content:center}
+.char-sprite{font-size:34px;flex:none;animation:charBob 2.6s ease-in-out infinite;cursor:pointer}
+@keyframes charBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.char-sprite.tap{animation:charTap .5s ease}
+@keyframes charTap{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-8deg)}70%{transform:scale(1.15) rotate(8deg)}100%{transform:scale(1)}}
+
+/* персонаж-помощник (в игре) */
+.companion{
+  position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(20px);z-index:900;
+  display:flex;align-items:flex-end;gap:8px;pointer-events:none;
+  opacity:0;transition:opacity .25s,transform .25s;max-width:92vw;
+}
+.companion.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.comp-sprite{font-size:40px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.comp-sprite.happy{animation:compHappy .7s ease}
+.comp-sprite.sad{animation:compSad .6s ease}
+@keyframes compHappy{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-12deg)}60%{transform:scale(1.2) rotate(12deg)}100%{transform:scale(1)}}
+@keyframes compSad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px) rotate(-4deg)}75%{transform:translateX(6px) rotate(4deg)}}
+.comp-bubble{
+  position:relative;background:linear-gradient(160deg,#ffffff,#e8dfff);color:#2a1c63;
+  border-radius:14px;padding:8px 12px;font-size:13px;font-weight:700;
+  box-shadow:0 8px 22px rgba(0,0,0,.4);max-width:220px;
+}
+.comp-bubble::after{content:"";position:absolute;left:-7px;bottom:12px;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:8px solid #f3ecff}
+.char-bubble{background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;font-size:13px;color:#fff;flex:1}
+
+/* история приключения */
+.story-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:16px;margin:0 0 14px;overflow:hidden}
+.story-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;font-weight:800;font-size:15px;color:#ffd54a;cursor:pointer;user-select:none}
+.story-arrow{color:#c9c0f2;font-size:13px;transition:transform .2s;flex:none}
+.story-box.collapsed .story-arrow{transform:rotate(-90deg)}
+.story-body{padding:0 13px 13px}
+.story-box.collapsed .story-body{display:none}
+.story-intro{color:#e8dfff;font-size:13.5px;line-height:1.55;margin:0}
+
+/* карта приключений */
+.adventure-map{
+  position:relative;height:640px;border-radius:22px;overflow:hidden;margin:0 0 16px;
+  border:1px solid rgba(255,255,255,.16);
+  background:
+    radial-gradient(60% 24% at 20% 8%,rgba(120,90,220,.45),transparent 70%),
+    radial-gradient(70% 30% at 82% 30%,rgba(70,150,200,.30),transparent 70%),
+    radial-gradient(80% 40% at 30% 62%,rgba(150,90,220,.28),transparent 72%),
+    radial-gradient(90% 50% at 70% 92%,rgba(40,150,170,.30),transparent 75%),
+    linear-gradient(180deg,#2a1c63 0%,#241457 55%,#140d38 100%);
+}
+.map-deco{position:absolute;pointer-events:none;opacity:.5;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))}
+.map-paths{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.map-trail{stroke:rgba(255,255,255,.15);stroke-width:5;stroke-dasharray:3 6;stroke-linecap:round;fill:none;vector-effect:non-scaling-stroke}
+.map-trail.lit{stroke:#ffd54a;stroke-dasharray:none;stroke-width:6;filter:drop-shadow(0 0 6px rgba(255,213,74,.9))}
+.map-island{
+  position:absolute;z-index:2;transform:translate(-50%,-50%);
+  width:78px;padding:8px 5px;border-radius:18px;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.2);color:#c9c0f2;
+  filter:grayscale(.45) brightness(.82);
+  transition:transform .15s,box-shadow .25s,filter .25s,background .25s;
+}
+.map-island:active{transform:translate(-50%,-50%) scale(.93)}
+.map-island.done{
+  filter:none;color:#fff;
+  background:linear-gradient(160deg,rgba(255,213,74,.34),rgba(255,255,255,.08));
+  border-color:rgba(255,213,74,.8);
+  box-shadow:0 0 18px rgba(255,213,74,.5);
+}
+.map-island.current{animation:islandPulse 1.8s infinite}
+@keyframes islandPulse{0%,100%{box-shadow:0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 16px rgba(255,255,255,.65)}}
+.mi-emoji{font-size:26px;line-height:1}
+.mi-name{font-size:10px;line-height:1.1}
+.mi-stars{font-size:10px;color:#ffd54a;letter-spacing:1px;height:12px}
+.map-hero{position:absolute;z-index:3;transform:translate(-50%,-50%);font-size:20px;pointer-events:none;filter:drop-shadow(0 0 6px rgba(255,213,74,.8));animation:heroBob 1.4s ease-in-out infinite}
+@keyframes heroBob{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,-62%)}}
+.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.game-card{
+  border:none;text-align:left;color:#fff;font-family:inherit;cursor:pointer;
+  background:linear-gradient(160deg,rgba(255,255,255,.17),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:14px 12px;
+  min-height:134px;display:flex;flex-direction:column;gap:3px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .15s,box-shadow .15s;
+}
+.game-card:active{transform:scale(.96)}
+.card-emoji{font-size:38px;line-height:1}
+.card-title{font-weight:700;font-size:15px;margin-top:3px}
+.card-desc{font-size:11.5px;color:#c9c0f2;line-height:1.25}
+
+.screen{display:none}
+.screen.active{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.btn-ghost{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+  border-radius:14px;padding:9px 14px;font-size:14px;font-family:inherit;cursor:pointer;
+}
+.btn-ghost:active{transform:scale(.95)}
+.hud{display:flex;gap:8px;font-size:13px;font-weight:600}
+.hud span{background:rgba(255,255,255,.12);border-radius:12px;padding:6px 10px;min-width:14px;text-align:center}
+.hud span:empty{display:none}
+.game-title{text-align:center;font-size:20px;margin:6px 0 14px}
+.game-desc{text-align:center;color:#e8dfff;font-size:13.5px;line-height:1.5;margin:-8px 8px 12px}
+.stage{position:relative;min-height:60vh}
+
+.btn{
+  border:none;border-radius:16px;padding:13px 20px;font-size:16px;font-weight:700;font-family:inherit;
+  cursor:pointer;color:#2a1c63;background:linear-gradient(135deg,#ffd54a,#ffb03a);
+  box-shadow:0 6px 16px rgba(255,180,60,.35);
+}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+
+.overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(10,6,32,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  z-index:50;animation:fade .25s;
+}
+.win-card{
+  background:linear-gradient(160deg,#4a3796,#241457);border:1px solid rgba(255,255,255,.25);
+  border-radius:26px;padding:24px 20px;text-align:center;max-width:88%;
+  box-shadow:0 14px 40px rgba(0,0,0,.5);
+}
+.win-header{display:flex;gap:12px;justify-content:center;align-items:center;font-size:46px}
+.win-header span{animation:pop .5s ease}
+.win-emoji{font-size:56px;animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.win-title{margin:10px 0 8px;font-size:20px}
+.win-quote{margin:0 0 14px;color:#e8dfff;font-size:14px;text-align:center}
+.win-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* финал приключения */
+.finale-card{
+  background:linear-gradient(160deg,#7a5be0,#2a1c63);border:2px solid rgba(255,213,74,.7);
+  border-radius:28px;padding:28px 22px;text-align:center;max-width:90%;
+  box-shadow:0 0 60px rgba(255,213,74,.35),0 18px 50px rgba(0,0,0,.55);
+  animation:pop .45s ease;
+}
+.finale-emoji{font-size:60px;line-height:1;animation:pop .6s ease}
+.finale-title{margin:12px 0 8px;font-size:24px;color:#ffd54a}
+.finale-text{margin:0;color:#e8dfff;font-size:14px;line-height:1.55}
+.finale-title2{margin:14px 0 4px;font-size:18px;color:#fff;font-weight:800}
+.finale-sub{color:#c9c0f2;font-size:13px;margin:0 0 14px}
+
+/* награды */
+.rewards-wrap{display:flex;flex-direction:column;gap:12px}
+.rewards-total{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;text-align:center;font-weight:700}
+.ach-list{display:flex;flex-direction:column;gap:8px}
+.ach-item{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 12px}
+.ach-item.got{background:linear-gradient(160deg,rgba(255,213,74,.25),rgba(255,255,255,.06));border-color:rgba(255,213,74,.6)}
+.ach-emoji{font-size:26px;flex:none}
+.ach-info{flex:1}
+.ach-title{font-weight:700}
+.ach-sub{font-size:12px;color:#c9c0f2}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.confetti-piece{position:fixed;top:-50px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(115vh) rotate(540deg);opacity:.15}}
+
+#soundBtn{
+  position:fixed;right:14px;top:calc(14px + env(safe-area-inset-top));z-index:1000;
+  width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.14);color:#fff;font-size:20px;cursor:pointer;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+#soundBtn:active{transform:scale(.92)}
+
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* кнопки-ответы (умножение, ряды) */
+.math-box{display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:10px}
+.math-question{
+  font-size:38px;font-weight:800;background:rgba(255,255,255,.1);border-radius:22px;
+  padding:22px 28px;border:1px solid rgba(255,255,255,.18);text-align:center;
+}
+.math-opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.chest{
+  display:flex;flex-direction:column;align-items:center;font-size:32px;line-height:1;
+  background:linear-gradient(160deg,#a877ff,#6a3ecf);border:1px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:14px 18px;color:#fff;font-family:inherit;cursor:pointer;
+  box-shadow:0 8px 20px rgba(120,60,220,.35);min-width:84px;
+}
+.chest span{font-size:26px;font-weight:800;margin-top:4px}
+.chest:active{transform:scale(.95)}
+.chest.wrong{animation:shake .4s;background:linear-gradient(160deg,#ff6b6b,#c92a2a)}
+
+/* 1. Волшебная лавка */
+.shop-wrap{display:flex;flex-direction:column;gap:14px}
+.shop-title{text-align:center;font-size:17px;color:#ffd54a;font-weight:700}
+.shop-list{display:flex;flex-direction:column;gap:8px}
+.shop-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 14px;font-size:16px}
+.si-emoji{font-size:26px}
+.si-name{flex:1}
+.si-price{font-weight:800;color:#ffd54a}
+.shop-q{text-align:center;font-size:20px;font-weight:800}
+.shop-opts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.shop-opt{border:none;border-radius:16px;padding:14px 18px;font-size:18px;font-weight:800;font-family:inherit;cursor:pointer;color:#2a1c63;background:linear-gradient(135deg,#ffd54a,#ffb03a)}
+.shop-opt:active{transform:scale(.95)}
+.shop-opt.wrong{animation:shake .4s;background:linear-gradient(160deg,#ff6b6b,#c92a2a);color:#fff}
+
+/* 2. Судоку 4×4 */
+.sdk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;max-width:300px;margin:0 auto 18px;border:3px solid #ffd54a;border-radius:12px;overflow:hidden}
+.sdk-info{text-align:center;font-size:13px;line-height:1.4;color:#c9c0f2;margin:0 0 14px}
+.sdk-cell{aspect-ratio:1;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);font-size:30px;cursor:pointer;font-family:inherit;color:#fff}
+.sdk-cell.fixed{background:rgba(168,119,255,.28)}
+.sdk-cell.sel{background:rgba(255,213,74,.35);outline:2px solid #ffd54a;outline-offset:-2px}
+.sdk-cell.bad{background:rgba(255,107,107,.45)}
+.sdk-cell.br{border-right:3px solid #ffd54a}
+.sdk-cell.bb{border-bottom:3px solid #ffd54a}
+.sdk-pad{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.sdk-sym{width:58px;height:58px;border-radius:16px;font-size:30px;border:1px solid rgba(255,255,255,.25);background:linear-gradient(160deg,#5a44ad,#33206e);cursor:pointer;font-family:inherit}
+.sdk-sym:active{transform:scale(.92)}
+
+/* 4. Лабиринт с ключами */
+.maze-wrap{
+  position:relative;margin:6px auto 16px;aspect-ratio:1;touch-action:none;
+  background:rgba(20,12,60,.5);border:3px solid var(--wall);border-radius:10px;overflow:hidden;
+}
+.maze-grid{position:absolute;inset:0;display:grid}
+.maze-cell{border:3px solid transparent}
+.wall-n{border-top-color:var(--wall)}
+.wall-e{border-right-color:var(--wall)}
+.wall-s{border-bottom-color:var(--wall)}
+.wall-w{border-left-color:var(--wall)}
+.maze-hero,.maze-castle,.maze-key{
+  position:absolute;transform:translate(-50%,-50%);font-size:min(6vw,28px);
+  pointer-events:none;z-index:2;
+}
+.maze-hero{transition:left .12s,top .12s}
+.maze-key{font-size:min(5vw,22px);animation:twinkle 1.4s infinite}
+.maze-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,54px);gap:8px;justify-content:center}
+.maze-btn{
+  font-size:24px;border-radius:14px;border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.12);color:#fff;font-family:inherit;cursor:pointer;
+}
+.maze-btn:active{transform:scale(.93)}
+.maze-btn.up{grid-column:2;grid-row:1}
+.maze-btn.left{grid-column:1;grid-row:2}
+.maze-btn.right{grid-column:3;grid-row:2}
+.maze-btn.down{grid-column:2;grid-row:3}
+
+/* 5. Мемори на время */
+.mem-top{display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin-bottom:10px}
+.mem-top.preview{justify-content:center;color:#ffd54a;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.mem-ready{display:flex;justify-content:center;margin-top:14px}
+.mem-ready .btn{width:100%}
+.mem-hint{text-align:center;color:#c9c0f2;font-size:13px;margin-top:12px}
+.mem-grid{display:grid;gap:8px;margin-top:8px}
+.mem-card{
+  aspect-ratio:1;border-radius:14px;border:2px solid rgba(255,255,255,.18);
+  background:linear-gradient(160deg,#5a44ad,#33206e);font-size:36px;color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+  transition:border-color .2s,background .2s,transform .2s,box-shadow .2s;
+}
+.mem-card .mem-back{display:none}
+.mem-card.open{background:linear-gradient(160deg,#6a4fd0,#3a2480);border-color:#ff6fb5;box-shadow:0 0 14px rgba(255,111,181,.6);transform:scale(1.05)}
+.mem-card.open .mem-front{display:none}
+.mem-card.open .mem-back{display:block}
+.mem-card.matched{background:linear-gradient(160deg,#2f6a58,#1e4a3f);border-color:#4ade80;box-shadow:0 0 14px rgba(74,222,128,.55);transform:scale(1)}
+.mem-card.matched .mem-front{display:none}
+.mem-card.matched .mem-back{display:block}
+
+/* 6. Уворачивайся */
+.catch-hud{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-bottom:10px}
+.dodge-area{
+  position:relative;height:62vh;min-height:360px;border-radius:22px;overflow:hidden;touch-action:none;
+  background:linear-gradient(180deg,rgba(80,60,160,.35),rgba(20,12,60,.55));
+  border:1px solid rgba(255,255,255,.15);transition:box-shadow .15s;
+}
+.dodge-area.flash{box-shadow:inset 0 0 70px rgba(255,60,60,.85)}
+.dodge-ground{position:absolute;left:0;right:0;bottom:0;height:12px;background:linear-gradient(90deg,#3fe0d0,#a877ff);opacity:.5}
+.dodge-hero{
+  position:absolute;bottom:4px;left:50%;font-size:44px;transform:translateX(-50%);
+  pointer-events:none;z-index:3;filter:drop-shadow(0 0 10px rgba(255,213,74,.6));
+}
+.dodge-item{position:absolute;top:-40px;font-size:36px;transform:translate(-50%,0);pointer-events:none;will-change:top}
+.dodge-hint{text-align:center;color:#c9c0f2;font-size:13px;margin-top:10px}
+
+/* 7. Найди фигуру */
+.fig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:360px;margin:0 auto 18px}
+.fig-cell{
+  aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;
+}
+.fig-cell.missing{background:rgba(255,213,74,.15);border:2px dashed #ffd54a;color:#ffd54a;font-size:34px;font-weight:800}
+.figs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;max-width:96%}
+.fig{width:28px;height:28px;display:inline-block;flex:none}
+.fig.circle{border-radius:50%}
+.fig.square{border-radius:6px}
+.fig.triangle{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fig.diamond{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.fig.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.fig-opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.fig-opt{
+  width:100px;height:100px;border-radius:18px;border:1px solid rgba(255,255,255,.22);
+  background:linear-gradient(160deg,#5a44ad,#33206e);cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+}
+.fig-opt:active{transform:scale(.94)}
+.fig-opt.wrong{animation:shake .4s}
+
+/* 8. Мелодия из 6 нот */
+.simon-info{text-align:center;font-size:16px;color:#e8dfff;margin:8px 0 16px;min-height:22px}
+.simon-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:340px;margin:0 auto}
+.simon-pad{
+  aspect-ratio:1;border-radius:18px;border:2px solid rgba(255,255,255,.2);
+  font-size:38px;cursor:pointer;font-family:inherit;color:#fff;
+  transition:transform .1s,filter .1s,box-shadow .1s;
+}
+.simon-pad:active{transform:scale(.95)}
+.simon-pad.lit{filter:brightness(1.9);transform:scale(1.04);box-shadow:0 0 26px rgba(255,255,255,.7)}
+.pad-y{background:linear-gradient(160deg,#ffd54a,#ffb03a)}
+.pad-b{background:linear-gradient(160deg,#4aa8ff,#2a6ad0)}
+.pad-r{background:linear-gradient(160deg,#ff6b8a,#d0304f)}
+.pad-g{background:linear-gradient(160deg,#4ade80,#1f9d55)}
+.pad-c{background:linear-gradient(160deg,#5ad1e0,#1f8fa0)}
+.pad-p{background:linear-gradient(160deg,#c084fc,#7c3aed)}
+
+/* 9. Числовой ряд */
+.seq-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:22px 0 26px}
+.seq-item{
+  min-width:56px;height:56px;padding:0 10px;border-radius:14px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:#ffd54a;
+}
+.seq-opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* 10. Пятнашки 4×4 */
+.f15-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:340px;margin:12px auto 0;aspect-ratio:1}
+.f15-tile{
+  border:none;border-radius:14px;font-size:26px;font-weight:800;color:#1a1147;cursor:pointer;
+  font-family:inherit;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.f15-tile:active{transform:scale(.95)}
+.f15-tile.blank{background:rgba(255,255,255,.05);box-shadow:none;cursor:default}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<button id="soundBtn" aria-label="Звук">🔊</button>
+<div id="confetti"></div>
+
+<div class="app">
+  <section id="home" class="screen active">
+    <h1>Волшебные игры</h1>
+    <p class="subtitle">Сложный уровень — для настоящих знатоков!</p>
+    <div class="home-header">
+      <div class="home-progress">
+        <div class="hp-text"><span id="homeDone">Начни приключение!</span> <span id="homeProgress" class="hp-pill">0 / 10</span></div>
+        <div class="hp-bar"><div class="hp-fill" id="hpFill"></div></div>
+        <button class="hp-reset" id="resetBtn">↺ Начать заново</button>
+      </div>
+      <button id="rewardsBtn" class="btn-ghost small">🏆 Награды</button>
+    </div>
+    <div class="story-box" id="storyBox">
+      <div class="story-head" id="storyHead">📖 Легенда волшебного архипелага<span class="story-arrow" id="storyArrow">▾</span></div>
+      <div class="story-body" id="storyBody">
+        <p class="story-intro">Давным-давно над королевством из 10 островов сияли 10 волшебных кристаллов. Злой колдун разбросал их силу по островам, и королевство уснуло. Пройдись по островам, собери кристаллы и разбуди королевство. Каждый остров — испытание, а звёзды за победу приближают тебя к финалу.</p>
+      </div>
+    </div>
+    <div class="character-box" id="charBox">
+      <div class="char-sprite" id="charSprite">🧙</div>
+      <div class="char-bubble" id="charBubble">Привет, юный волшебник!</div>
+    </div>
+    <div class="adventure-map" id="adventureMap"></div>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <div class="topbar">
+      <button id="backBtn" class="btn-ghost">← Меню</button>
+<div class="hud"><span id="hudLevel"></span><span id="hudScore"></span></div>
+      </div>
+      <h2 id="gameTitle" class="game-title"></h2>
+      <p class="game-desc" id="gameDesc"></p>
+      <div id="stage" class="stage"></div>
+    </section>
+
+  <section id="rewardsScreen" class="screen">
+    <div class="topbar">
+      <button id="backRewardsBtn" class="btn-ghost">← Меню</button>
+      <div class="hud"><span>🏆 Награды</span></div>
+    </div>
+    <h2 class="game-title">Мои награды</h2>
+    <p class="subtitle">Звёздочки и достижения за приключения</p>
+    <div class="rewards-wrap">
+      <div class="rewards-total">Всего звёзд: <span id="starsTotal">0</span> ⭐</div>
+      <div class="ach-list" id="achList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ============ УТИЛИТЫ ============ */
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+function randInt(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffle(arr){ return arr.slice().sort(() => Math.random() - 0.5); }
+
+/* ============ ЗВУК ============ */
+let audioCtx = null;
+let soundOn = true;
+function beep(freq, dur, type, vol){
+  if (!soundOn) return;
+  try{
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(vol || 0.14, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur + 0.02);
+  }catch(e){}
+}
+function sfxTap(){ beep(520, 0.07, "triangle", 0.1); }
+function sfxGood(){ beep(660, 0.09, "sine", 0.14); setTimeout(() => beep(880, 0.14, "sine", 0.14), 90); }
+function sfxBad(){ beep(180, 0.18, "sawtooth", 0.1); if (typeof charError === "function") charError(); }
+function sfxWin(){ [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, 0.18, "sine", 0.14), i * 120)); }
+
+/* ============ ПРОГРЕСС ============ */
+const PROGRESS_KEY = "magicGamesProgress";
+let progress = {
+  completed: {}, // { gameId: { stars: 1-3, best: number, last: timestamp } }
+  unlockedRewards: [],
+  character: "wizard", // wizard/unicorn/dragon
+  musicOn: false,
+  title: "" // титул за прохождение: "Хранитель королевства"
+};
+function loadProgress(){
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (raw){
+      const p = JSON.parse(raw);
+      progress = Object.assign(progress, p);
+    }
+  } catch(e){}
+}
+function saveProgress(){
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch(e){}
+}
+function recordCompletion(gameId, opts){
+  opts = opts || {};
+  const cur = progress.completed[gameId] || { stars: 0, best: 0 };
+  if (opts.stars && opts.stars > cur.stars) cur.stars = opts.stars;
+  if (opts.best && opts.best > cur.best) cur.best = opts.best;
+  if (opts.score != null && (!cur.best || opts.score > cur.best)) cur.best = opts.score;
+  cur.last = Date.now();
+  const wasDone = !!progress.completed[gameId];
+  progress.completed[gameId] = cur;
+  saveProgress();
+  updateHomeProgress();
+  const total = Object.keys(GAMES).length;
+  if (!wasDone && total > 0 && Object.keys(progress.completed).length === total){
+    setTimeout(showFinale, 900);
+  }
+}
+function calcStars(gameId, result){
+  // Простая система: 1 звезда минимум за прохождение, до 3 за хорошее
+  if (!result) return 1;
+  const score = result.score || 0;
+  if (gameId === "dodge") return score >= 80 ? 3 : score >= 40 ? 2 : 1;
+  if (gameId === "memory") return result.timeLeft >= 30 ? 3 : result.timeLeft >= 15 ? 2 : 1;
+  if (gameId === "multiply" || gameId === "sequence" || gameId === "figure") return result.ok >= 5 ? 3 : result.ok >= 3 ? 2 : 1;
+  return 2;
+}
+
+/* ============ ФОН: ЗВЁЗДЫ И КОНФЕТТИ ============ */
+(function makeStars(){
+  const layer = document.getElementById("stars");
+  for (let i = 0; i < 60; i++){
+    const s = el("div", "star");
+    s.style.left = Math.random() * 100 + "%";
+    s.style.top = Math.random() * 100 + "%";
+    const sz = 1 + Math.random() * 2.4;
+    s.style.width = sz + "px";
+    s.style.height = sz + "px";
+    s.style.animationDelay = Math.random() * 3 + "s";
+    s.style.animationDuration = (2 + Math.random() * 3) + "s";
+    layer.appendChild(s);
+  }
+})();
+function celebrate(){
+  const layer = document.getElementById("confetti");
+  const emojis = ["⭐", "✨", "🌟", "💫", "🎉", "🎊", "🐲", "🦄", "🧙", "🏰", "💎", "🔮"];
+  for (let i = 0; i < 26; i++){
+    const p = el("div", "confetti-piece", pick(emojis));
+    p.style.left = Math.random() * 100 + "vw";
+    p.style.fontSize = (16 + Math.random() * 20) + "px";
+    p.style.animationDuration = (2 + Math.random() * 1.6) + "s";
+    p.style.animationDelay = (Math.random() * 0.4) + "s";
+    layer.appendChild(p);
+    setTimeout(() => p.remove(), 4200);
+  }
+}
+
+/* ============ ПЕРСОНАЖ-ПОМОЩНИК ============ */
+const CHAR_PHRASES = {
+  win:   ["Ура! Отлично!", "Ты молодец!", "Победа! Так держать!", "Вот это да!", "Здорово получилось!", "Ты настоящий герой!"],
+  error: ["Попробуй ещё раз!", "Почти получилось!", "Не переживай, ты сможешь!", "Ошибаться не страшно!", "Ещё попытка, вперёд!"],
+  start: ["Поехали!", "Вперёд, к приключениям!", "Удачи!", "Я рядом, не бойся!"],
+  hello: ["Привет! Выбери островок!", "Давай играть!", "Я рядом, не бойся!", "Ты справишься!"]
+};
+function charEmoji(){
+  return progress.character === "unicorn" ? "🦄" : progress.character === "dragon" ? "🐲" : "🧙";
+}
+let companionEl = null, companionSprite = null, companionBubble = null, companionTimer = null;
+function ensureCompanion(){
+  if (companionEl) return;
+  companionEl = el("div", "companion");
+  companionSprite = el("div", "comp-sprite", charEmoji());
+  companionBubble = el("div", "comp-bubble", "");
+  companionEl.append(companionSprite, companionBubble);
+  document.body.append(companionEl);
+}
+function charSay(type, msg, dur){
+  ensureCompanion();
+  const list = CHAR_PHRASES[type] || CHAR_PHRASES.hello;
+  const text = msg || pick(list);
+  companionSprite.textContent = charEmoji();
+  companionBubble.textContent = text;
+  companionSprite.classList.remove("happy", "sad");
+  void companionSprite.offsetWidth;
+  if (type === "win") companionSprite.classList.add("happy");
+  else if (type === "error") companionSprite.classList.add("sad");
+  companionEl.classList.add("show");
+  clearTimeout(companionTimer);
+  companionTimer = setTimeout(() => companionEl.classList.remove("show"), dur || 2200);
+}
+let lastErr = 0;
+function charError(){ const now = Date.now(); if (now - lastErr < 5000) return; lastErr = now; charSay("error"); }
+
+/* ============ ДВИЖОК ЭКРАНОВ ============ */
+const stage = document.getElementById("stage");
+const hudLevel = document.getElementById("hudLevel");
+const hudScore = document.getElementById("hudScore");
+const gameTitle = document.getElementById("gameTitle");
+const api = {
+  setLevel(t){ hudLevel.textContent = t; },
+  setScore(t){ hudScore.textContent = t; }
+};
+
+let currentGame = null;
+function stopGame(){ if (currentGame && currentGame.stop) currentGame.stop(); currentGame = null; }
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+  window.scrollTo(0, 0);
+}
+function goHome(){ stopGame(); stage.innerHTML = ""; showScreen("home"); }
+function openGame(id){
+  stopGame();
+  const g = GAMES[id];
+  stage.innerHTML = "";
+  gameTitle.textContent = g.emoji + " " + g.title;
+  const desc = document.getElementById("gameDesc");
+  if (desc) desc.textContent = STORY_BEATS[id] || g.desc;
+  hudLevel.textContent = ""; hudScore.textContent = "";
+  showScreen("gameScreen");
+  currentGame = g.start();
+  charSay("start", null, 1500);
+}
+document.getElementById("backBtn").onclick = () => { sfxTap(); goHome(); };
+
+const WIN_QUOTES = ["Ура! Отлично!", "Молодец! Ты справился!", "Классно! Продолжай!", "Великолепно!", "Ты настоящий герой!"];
+const LOSE_QUOTES = ["Не беда, попробуй ещё раз!", "В следующий раз получится!", "Ты почти у цели! Ещё попытка!"];
+
+function showWin(opts){
+  opts = opts || {};
+  sfxWin(); celebrate();
+  charSay("win", opts.quote);
+  const ov = el("div", "overlay");
+  const card = el("div", "win-card");
+  const header = el("div", "win-header");
+  header.innerHTML = '<span class="win-char">' + charEmoji() + '</span><span>' + (opts.emoji || "🎉") + '</span>';
+  card.append(header);
+  const quote = opts.quote || pick(WIN_QUOTES);
+  card.append(el("h3", "win-title", opts.title || "Молодец!"));
+  card.append(el("div", "win-quote", quote));
+  const btns = el("div", "win-btns");
+  const again = el("button", "btn", opts.nextLabel || "Ещё раз");
+  again.onclick = () => { sfxTap(); ov.remove(); if (opts.onNext) opts.onNext(); };
+  const menu = el("button", "btn ghost", "В меню");
+  menu.onclick = () => { sfxTap(); goHome(); };
+  btns.append(again, menu);
+  card.append(btns); ov.append(card); stage.append(ov);
+}
+
+/* ============ ФИНАЛ: КОРОЛЕВСТВО ПРОСНУЛОСЬ ============ */
+let finaleShown = false;
+function showFinale(){
+  if (finaleShown) return;
+  finaleShown = true;
+  if (!progress.title){ progress.title = "Хранитель королевства"; saveProgress(); }
+  sfxWin(); celebrate(); celebrate();
+  const ov = el("div", "overlay");
+  const card = el("div", "finale-card");
+  card.appendChild(el("div", "finale-emoji", "🏰✨"));
+  card.appendChild(el("div", "finale-title", "Королевство проснулось!"));
+  card.appendChild(el("div", "finale-text", "Ты собрал все 10 кристаллов! Сила вернулась, и королевство засияло снова. Спасибо, юный волшебник!"));
+  card.appendChild(el("div", "finale-title2", "Получен титул: 👑 Хранитель королевства"));
+  const btns = el("div", "win-btns");
+  const home = el("button", "btn", "В меню");
+  home.onclick = () => { sfxTap(); ov.remove(); goHome(); };
+  const rew = el("button", "btn ghost", "Награды");
+  rew.onclick = () => { sfxTap(); ov.remove(); renderRewards(); showScreen("rewardsScreen"); };
+  btns.append(home, rew);
+  card.append(btns); ov.append(card); document.body.append(ov);
+  charSay("win");
+}
+
+/* ============ 1. ВОЛШЕБНАЯ ЛАВКА (деньги) ============ */
+const shopItems = [
+  { e: "🍎", n: "Яблоко" }, { e: "🍞", n: "Хлеб" }, { e: "🧪", n: "Зелье" },
+  { e: "🗝️", n: "Ключ" }, { e: "🧸", n: "Мишка" }, { e: "🍯", n: "Мёд" },
+  { e: "🕯️", n: "Свеча" }, { e: "📕", n: "Книга" }, { e: "🍇", n: "Виноград" },
+  { e: "🧁", n: "Кекс" }
+];
+function shopGame(){
+  let level = 1, score = 0, ok = 0;
+  api.setLevel("Уровень 1"); api.setScore("Монеты: 0");
+  const wrap = el("div", "shop-wrap"); stage.innerHTML = ""; stage.append(wrap);
+
+  function round(){
+    const count = level <= 1 ? 2 : level <= 2 ? 3 : level <= 4 ? 3 : 4;
+    const chosen = shuffle(shopItems).slice(0, count);
+    const prices = chosen.map(() => level <= 1 ? randInt(1, 5) : level <= 2 ? randInt(2, 8) : level <= 4 ? randInt(3, 12) : randInt(5, 25));
+    const total = prices.reduce((a, b) => a + b, 0);
+    const changeMode = level >= 3 && Math.random() < 0.45;
+    let note = 0;
+    if (changeMode){
+      const cand = [50, 100, 200].filter(x => x >= total + 1);
+      note = cand.length ? cand[0] : total + 50;
+    }
+    const answer = changeMode ? note - total : total;
+    const nOptions = level >= 3 ? 4 : 3;
+
+    wrap.innerHTML = "";
+    wrap.append(el("div", "shop-title", changeMode ? ("У тебя " + note + " ✨. Купи всё и посчитай сдачу!") : "Сколько стоит вся покупка?"));
+    const list = el("div", "shop-list");
+    chosen.forEach((it, k) => list.append(el("div", "shop-item",
+      '<span class="si-emoji">' + it.e + '</span><span class="si-name">' + it.n + '</span><span class="si-price">' + prices[k] + " ✨</span>")));
+    wrap.append(list);
+    wrap.append(el("div", "shop-q", changeMode ? "Сдача: ?" : "Итого: ?"));
+
+    const opts = el("div", "shop-opts");
+    const set = new Set([answer]);
+    const spread = Math.max(3, Math.round(total * 0.4));
+    let g = 0;
+    while (set.size < nOptions && g++ < 100){
+      let d = answer + randInt(-spread, spread);
+      if (d < 0) d = Math.abs(d) + 1;
+      if (d !== answer) set.add(d);
+    }
+    while (set.size < nOptions) set.add(answer + set.size + 1);
+    shuffle([...set]).forEach(v => {
+      const b = el("button", "shop-opt", v + " ✨");
+      b.onclick = () => {
+    if (v === answer){
+      sfxGood(); score++; ok++; api.setScore("Монеты: " + score);
+      if (ok >= 4){ ok = 0; level++; api.setLevel("Уровень " + level); }
+      if (level >= 5 && ok === 0){ recordCompletion("shop", { stars: 2, best: score }); }
+      round();
+    } else {
+          sfxBad(); b.classList.add("wrong");
+          setTimeout(() => b.classList.remove("wrong"), 400);
+        }
+      };
+      opts.append(b);
+    });
+    wrap.append(opts);
+  }
+  round();
+  return { stop(){} };
+}
+
+/* ============ 2. УМНОЖАЙ-КА (× и ÷) ============ */
+function multiplyGame(){
+  let level = 1, score = 0, ok = 0;
+  api.setLevel("Уровень 1"); api.setScore("Очки: 0");
+  stage.innerHTML = "";
+  const box = el("div", "math-box");
+  const q = el("div", "math-question");
+  const opts = el("div", "math-opts");
+  box.append(q, opts); stage.append(box);
+
+  function newRound(){
+    let a, b, ans, op;
+    if (level <= 1){ a = randInt(2, 5); b = randInt(2, 5); op = "×"; ans = a * b; }
+    else if (level === 2){ a = randInt(2, 9); b = randInt(2, 5); op = "×"; ans = a * b; }
+    else if (level <= 4){ a = randInt(2, 9); b = randInt(2, 9); op = "×"; ans = a * b; }
+    else { b = randInt(2, 9); ans = randInt(2, 9); a = b * ans; op = "÷"; }
+    q.textContent = op === "×" ? a + " × " + b + " = ?" : a + " ÷ " + b + " = ?";
+    const set = new Set([ans]);
+    let g = 0;
+    while (set.size < 4 && g++ < 100){
+      const d = ans + randInt(-6, 6);
+      if (d > 0 && d !== ans) set.add(d);
+    }
+    while (set.size < 4) set.add(ans + set.size + 1);
+    opts.innerHTML = "";
+    shuffle([...set]).forEach(v => {
+      const btn = el("button", "chest", "🔮<span>" + v + "</span>");
+      btn.onclick = () => {
+        if (v === ans){
+          sfxGood(); score++; ok++; api.setScore("Очки: " + score);
+          if (ok >= 5){ ok = 0; level++; api.setLevel("Уровень " + level); }
+          if (level >= 5 && ok === 0){ recordCompletion("multiply", { stars: 3, best: score }); }
+          newRound();
+        } else {
+          sfxBad(); btn.classList.add("wrong");
+          setTimeout(() => btn.classList.remove("wrong"), 400);
+        }
+      };
+      opts.append(btn);
+    });
+  }
+  newRound();
+  return { stop(){} };
+}
+
+/* ============ 3. СУДОКУ 4×4 ============ */
+function sudokuGame(){
+  const syms = ["🌟", "🌙", "🔥", "🍀"];
+  let level = 1, score = 0, selected = -1, values = [], fixed = [];
+  api.setLevel("Уровень 1"); api.setScore("Собрано: 0");
+
+  function baseSolution(){
+    const base = [[0,1,2,3],[2,3,0,1],[1,0,3,2],[3,2,1,0]];
+    const map = shuffle([0,1,2,3]);
+    const g = base.map(r => r.map(v => map[v]));
+    const swapRows = (i, j) => { const t = g[i]; g[i] = g[j]; g[j] = t; };
+    const swapCols = (i, j) => { g.forEach(r => { const t = r[i]; r[i] = r[j]; r[j] = t; }); };
+    if (Math.random() < .5) swapRows(0, 1);
+    if (Math.random() < .5) swapRows(2, 3);
+    if (Math.random() < .5){ swapRows(0, 2); swapRows(1, 3); }
+    if (Math.random() < .5) swapCols(0, 1);
+    if (Math.random() < .5) swapCols(2, 3);
+    if (Math.random() < .5){ swapCols(0, 2); swapCols(1, 3); }
+    return g;
+  }
+  function conflictSet(){
+    const bad = new Set();
+    const check = list => {
+      const seen = {};
+      list.forEach(i => {
+        const v = values[i];
+        if (!v) return;
+        if (seen[v] != null){ bad.add(i); bad.add(seen[v]); }
+        else seen[v] = i;
+      });
+    };
+    for (let r = 0; r < 4; r++) check([r*4, r*4+1, r*4+2, r*4+3]);
+    for (let c = 0; c < 4; c++) check([c, c+4, c+8, c+12]);
+    for (let br = 0; br < 2; br++) for (let bc = 0; bc < 2; bc++)
+      check([(br*2)*4 + bc*2, (br*2)*4 + bc*2 + 1, (br*2+1)*4 + bc*2, (br*2+1)*4 + bc*2 + 1]);
+    return bad;
+  }
+  function render(){
+    stage.innerHTML = "";
+    const g = el("div", "sdk-grid");
+    const bad = conflictSet();
+    for (let i = 0; i < 16; i++){
+      const r = Math.floor(i / 4), c = i % 4;
+      const cell = el("button", "sdk-cell" + (fixed[i] ? " fixed" : "") + (i === selected ? " sel" : "") + (bad.has(i) ? " bad" : ""));
+      cell.textContent = values[i];
+      if (c === 1) cell.classList.add("br");
+      if (r === 1) cell.classList.add("bb");
+      cell.onclick = () => { if (fixed[i]) return; sfxTap(); selected = i; render(); };
+      g.append(cell);
+    }
+    const pad = el("div", "sdk-pad");
+    syms.forEach(s => { const b = el("button", "sdk-sym", s); b.onclick = () => place(s); pad.append(b); });
+    const info = el("div", "sdk-info",
+      "Правило: 🌟 🌙 🔥 🍀 не должны повторяться " +
+      "в одной строке, в одном столбце и в квадрате 2×2.");
+    stage.append(info, g, pad);
+  }
+  function place(s){
+    if (selected < 0 || fixed[selected]){ sfxTap(); return; }
+    values[selected] = s; sfxTap();
+    if (conflictSet().size) sfxBad();
+    render();
+    if (values.every(v => v) && conflictSet().size === 0){
+      sfxWin(); score++; api.setScore("Собрано: " + score);
+      if (level < 4) level++;
+      api.setLevel("Уровень " + level);
+      recordCompletion("sudoku", { stars: 2, best: score });
+      setTimeout(() => showWin({ emoji: "🧩", title: "Судоку решено!", nextLabel: "Ещё раз", onNext: newBoard }), 300);
+    }
+  }
+  function newBoard(){
+    const sol = baseSolution();
+    values = new Array(16).fill("");
+    fixed = new Array(16).fill(true);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) values[r*4+c] = syms[sol[r][c]];
+    const blanks = level <= 1 ? 4 : level === 2 ? 6 : level === 3 ? 8 : 10;
+    shuffle([...Array(16).keys()]).slice(0, blanks).forEach(i => { fixed[i] = false; values[i] = ""; });
+    selected = -1;
+    render();
+  }
+  newBoard();
+  return { stop(){} };
+}
+
+/* ============ 4. ЛАБИРИНТ С КЛЮЧАМИ ============ */
+function generateMaze(cols, rows){
+  const g = [];
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) g.push({ x, y, n: true, e: true, s: true, w: true, v: false });
+  const get = (x, y) => (x < 0 || y < 0 || x >= cols || y >= rows) ? null : g[y * cols + x];
+  let cur = g[0]; cur.v = true;
+  const stack = [];
+  while (true){
+    const opts = [];
+    const up = get(cur.x, cur.y - 1), right = get(cur.x + 1, cur.y), down = get(cur.x, cur.y + 1), left = get(cur.x - 1, cur.y);
+    if (up && !up.v) opts.push(["n", up]);
+    if (right && !right.v) opts.push(["e", right]);
+    if (down && !down.v) opts.push(["s", down]);
+    if (left && !left.v) opts.push(["w", left]);
+    if (opts.length){
+      const o = pick(opts), d = o[0], nx = o[1];
+      if (d === "n"){ cur.n = false; nx.s = false; }
+      if (d === "s"){ cur.s = false; nx.n = false; }
+      if (d === "e"){ cur.e = false; nx.w = false; }
+      if (d === "w"){ cur.w = false; nx.e = false; }
+      nx.v = true; stack.push(cur); cur = nx;
+    } else if (stack.length){ cur = stack.pop(); }
+    else break;
+  }
+  return { cols, rows, cells: g };
+}
+function mazeKeysGame(){
+  let level = 1, stopped = false, cleanups = [];
+  const sizes = l => l <= 1 ? 9 : l === 2 ? 11 : 13;
+  function build(){
+    cleanups.forEach(f => f()); cleanups = [];
+    const n = sizes(level);
+    const maze = generateMaze(n, n);
+    stage.innerHTML = "";
+    const wrap = el("div", "maze-wrap");
+    wrap.style.width = "min(92vw,440px)";
+    const grid = el("div", "maze-grid");
+    grid.style.gridTemplateColumns = "repeat(" + n + ",1fr)";
+    grid.style.gridTemplateRows = "repeat(" + n + ",1fr)";
+    maze.cells.forEach(c => {
+      const cell = el("div", "maze-cell");
+      if (c.n) cell.classList.add("wall-n");
+      if (c.e) cell.classList.add("wall-e");
+      if (c.s) cell.classList.add("wall-s");
+      if (c.w) cell.classList.add("wall-w");
+      grid.append(cell);
+    });
+    const target = n * n - 1;
+    const free = [...Array(n * n).keys()].filter(i => i !== 0 && i !== target);
+    const keys = shuffle(free).slice(0, 3).map(i => ({ i, got: false, el: el("div", "maze-key", "🔑") }));
+    const hero = el("div", "maze-hero", "🧙");
+    const castle = el("div", "maze-castle", "🏰");
+    let px = 0, py = 0, left = 3;
+    const pos = (elm, idx) => {
+      const x = idx % n, y = Math.floor(idx / n);
+      elm.style.left = ((x + .5) / n * 100) + "%";
+      elm.style.top = ((y + .5) / n * 100) + "%";
+    };
+    pos(castle, target); pos(hero, 0);
+    keys.forEach(k => pos(k.el, k.i));
+    wrap.append(grid); keys.forEach(k => wrap.append(k.el)); wrap.append(hero, castle);
+
+    function updateHud(){ api.setLevel("Лабиринт " + n + "×" + n); api.setScore("🔑 " + (3 - left) + "/3"); }
+    updateHud();
+
+    const pad = el("div", "maze-pad");
+    const mk = (txt, dx, dy, cls) => { const b = el("button", "maze-btn " + cls, txt); b.onclick = () => move(dx, dy); return b; };
+    pad.append(mk("⬆️", 0, -1, "up"), mk("⬅️", -1, 0, "left"), mk("➡️", 1, 0, "right"), mk("⬇️", 0, 1, "down"));
+    stage.append(wrap, pad);
+
+    function move(dx, dy){
+      if (stopped) return;
+      const c = maze.cells[py * n + px];
+      if ((dx === 1 && c.e) || (dx === -1 && c.w) || (dy === 1 && c.s) || (dy === -1 && c.n)) return;
+      px += dx; py += dy; sfxTap(); pos(hero, py * n + px);
+      const idx = py * n + px;
+      const k = keys.find(k => k.i === idx && !k.got);
+      if (k){ k.got = true; left--; k.el.remove(); sfxGood(); updateHud(); }
+    if (idx === target){
+      if (left > 0){
+        sfxBad(); api.setScore("🔑 Сначала ключи!");
+        setTimeout(() => { if (!stopped) updateHud(); }, 900);
+      } else {
+        sfxGood();
+        setTimeout(() => {
+          if (stopped) return;
+          recordCompletion("maze", { stars: 2 });
+          if (level < 3) level++;
+          showWin({ emoji: "🏰", title: "Все ключи собраны!", nextLabel: level < 3 ? "Следующий лабиринт" : "Ещё раз", onNext: build });
+        }, 200);
+      }
+    }
+    }
+    let sx = null, sy = null;
+    const ts = e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+    const te = e => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > Math.abs(dy)){ if (dx > 22) move(1, 0); else if (dx < -22) move(-1, 0); }
+      else { if (dy > 22) move(0, 1); else if (dy < -22) move(0, -1); }
+      sx = sy = null;
+    };
+    wrap.addEventListener("touchstart", ts, { passive: true });
+    wrap.addEventListener("touchend", te);
+    cleanups.push(() => { wrap.removeEventListener("touchstart", ts); wrap.removeEventListener("touchend", te); });
+  }
+  build();
+  return { stop(){ stopped = true; cleanups.forEach(f => f()); } };
+}
+
+/* ============ 5. МЕМОРИ НА ВРЕМЯ ============ */
+function memoryTimedGame(){
+  const pool = ["🦄","🐲","🧚","🏰","⭐","🌙","🔥","🍀","🌈","🐸","🦉","🐱","🗝️","💎","🎈","🍄","🕯️","📕","🧿","🪄"];
+  const pairs = 8;
+  let timeLeft = 60, ticker = null, first = null, lock = false, matched = 0, stopped = false;
+  api.setLevel("Найди 8 пар");
+  stage.innerHTML = "";
+  const top = el("div", "mem-top");
+  const grid = el("div", "mem-grid");
+  grid.style.gridTemplateColumns = "repeat(4,1fr)";
+  const hint = el("div", "mem-hint", "Запомни, где лежат одинаковые карты. Открывай по две карточки и собери все " + pairs + " пар до конца таймера");
+  stage.append(top, grid, hint);
+  function update(msg){
+    if (msg){ top.innerHTML = "<span>" + msg + "</span>"; return; }
+    top.innerHTML = "<span>⏱️ " + timeLeft + "</span><span>✅ " + matched + "/" + pairs + "</span>";
+  }
+  function flip(c, sym){
+    if (lock || stopped || c.classList.contains("open")) return;
+    sfxTap(); c.classList.add("open");
+    if (!first){ first = c; return; }
+    if (first.querySelector(".mem-back").textContent === sym){
+      matched++; sfxGood();
+      first.classList.add("matched"); c.classList.add("matched"); first = null; update();
+    if (matched === pairs){
+      clearInterval(ticker); stopped = true;
+      const stars = timeLeft >= 30 ? 3 : timeLeft >= 15 ? 2 : 1;
+      recordCompletion("memory", { stars, score: matched });
+      setTimeout(() => showWin({ emoji: "🧠", title: "Все пары найдены!", nextLabel: "Ещё раз", onNext: deal }), 350);
+    }
+    } else {
+      sfxBad(); lock = true;
+      const f = first; first = null;
+      setTimeout(() => { f.classList.remove("open"); c.classList.remove("open"); lock = false; }, 700);
+    }
+  }
+  function deal(){
+    clearInterval(ticker);
+    timeLeft = 60; first = null; lock = false; matched = 0; stopped = false;
+    grid.innerHTML = "";
+    const picks = shuffle(pool).slice(0, pairs);
+    const cardEls = shuffle(picks.concat(picks)).map(sym => {
+      const c = el("button", "mem-card", '<span class="mem-front">❓</span><span class="mem-back">' + sym + "</span>");
+      c.onclick = () => flip(c, sym);
+      grid.append(c);
+      return c;
+    });
+    top.classList.add("preview");
+    lock = true;
+    cardEls.forEach(c => c.classList.add("open"));
+    update("👀 Запомни карточки!");
+    const readyWrap = el("div", "mem-ready");
+    const ready = el("button", "btn", "Я запомнил — начинай!");
+    readyWrap.append(ready);
+    stage.append(readyWrap);
+    ready.onclick = () => {
+      if (stopped || !lock) return;
+      sfxTap();
+      readyWrap.remove();
+      cardEls.forEach(c => c.classList.remove("open"));
+      top.classList.remove("preview");
+      lock = false;
+      update();
+      ticker = setInterval(() => {
+        timeLeft--; update();
+        if (timeLeft <= 0){
+          clearInterval(ticker); stopped = true;
+          recordCompletion("memory", { stars: 1, score: matched });
+          showWin({ emoji: "⏰", title: "Время вышло! Открыто: " + matched + " из " + pairs, nextLabel: "Ещё раз", onNext: deal });
+        }
+      }, 1000);
+    };
+  }
+  deal();
+  return { stop(){ stopped = true; clearInterval(ticker); } };
+}
+
+/* ============ 6. УВОРАЧИВАЙСЯ (реакция, управление) ============ */
+function dodgeGame(){
+  let running = false, stopped = false, score = 0, timeLeft = 45;
+  let tickTimer = null, rafId = null, lastT = 0;
+  let items = [], spawnAcc = 0, spawnGap = 750;
+  let heroX = 50, targetX = 50;
+  stage.innerHTML = "";
+  const hud = el("div", "catch-hud");
+  const area = el("div", "dodge-area");
+  const ground = el("div", "dodge-ground");
+  const hero = el("div", "dodge-hero", "🧙");
+  area.append(ground, hero);
+  const hint = el("div", "dodge-hint", "Веди волшебника пальцем 👉 Лови 💎 кристаллы и уворачивайся от 💣 бомб!");
+  stage.append(hud, area, hint);
+  function updateHud(){ hud.innerHTML = "<span>💎 " + score + "</span><span>⏱️ " + timeLeft + "</span>"; }
+
+  let pressed = false;
+  function pointerX(ev){
+    const rect = area.getBoundingClientRect();
+    const x = (ev.clientX - rect.left) / rect.width * 100;
+    targetX = Math.max(6, Math.min(94, x));
+  }
+  function onDown(ev){ pressed = true; pointerX(ev); if (area.setPointerCapture) { try { area.setPointerCapture(ev.pointerId); } catch(e){} } }
+  function onMove(ev){ if (pressed){ ev.preventDefault(); pointerX(ev); } }
+  function onUp(){ pressed = false; }
+  function onKey(ev){
+    if (ev.key === "ArrowLeft") targetX = Math.max(6, targetX - 8);
+    if (ev.key === "ArrowRight") targetX = Math.min(94, targetX + 8);
+  }
+  area.addEventListener("pointerdown", onDown);
+  area.addEventListener("pointermove", onMove);
+  area.addEventListener("pointerup", onUp);
+  area.addEventListener("pointercancel", onUp);
+  window.addEventListener("keydown", onKey);
+
+  function spawn(){
+    const bad = Math.random() < 0.38;
+    const b = el("div", "dodge-item", bad ? "💣" : "💎");
+    const x = 6 + Math.random() * 88;
+    const speed = 95 + Math.random() * 65 + (45 - timeLeft) * 4;
+    b.style.left = x + "%";
+    items.push({ el: b, x, y: -40, speed, bad });
+    area.append(b);
+  }
+  function loop(t){
+    if (!running) return;
+    if (!lastT) lastT = t;
+    const dt = Math.min(0.05, (t - lastT) / 1000);
+    lastT = t;
+    heroX += (targetX - heroX) * Math.min(1, dt * 14);
+    hero.style.left = heroX + "%";
+    const H = area.clientHeight;
+    const heroY = H - 46;
+    spawnAcc += dt * 1000;
+    if (spawnAcc >= spawnGap){ spawnAcc = 0; spawn(); }
+    for (let i = items.length - 1; i >= 0; i--){
+      const it = items[i];
+      it.y += it.speed * dt;
+      it.el.style.top = it.y + "px";
+      if (it.y >= heroY - 26 && it.y <= H && Math.abs(it.x - heroX) <= 12){
+        if (it.bad){
+          score = Math.max(0, score - 3); sfxBad();
+          area.classList.add("flash");
+          setTimeout(() => area.classList.remove("flash"), 200);
+        } else { score += 2; sfxGood(); }
+        updateHud(); it.el.remove(); items.splice(i, 1); continue;
+      }
+      if (it.y > H + 20){ it.el.remove(); items.splice(i, 1); }
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+  function start(){
+    items.forEach(it => it.el.remove()); items = [];
+    score = 0; timeLeft = 45; running = true; stopped = false;
+    spawnAcc = 0; lastT = 0; spawnGap = 750; heroX = 50; targetX = 50;
+    updateHud();
+    cancelAnimationFrame(rafId); clearInterval(tickTimer);
+    rafId = requestAnimationFrame(loop);
+    tickTimer = setInterval(() => {
+      timeLeft--; updateHud();
+      spawnGap = Math.max(360, 750 - (45 - timeLeft) * 9);
+      if (timeLeft <= 0) end();
+    }, 1000);
+  }
+  function end(){
+    running = false; stopped = true;
+    cancelAnimationFrame(rafId); clearInterval(tickTimer);
+    const stars = score >= 80 ? 3 : score >= 40 ? 2 : 1;
+    recordCompletion("dodge", { stars, score });
+    showWin({ emoji: "🧙", title: "Очков: " + score, nextLabel: "Ещё раз", onNext: start });
+  }
+  start();
+  return {
+    stop(){
+      stopped = true; running = false;
+      cancelAnimationFrame(rafId); clearInterval(tickTimer);
+      area.removeEventListener("pointerdown", onDown);
+      area.removeEventListener("pointermove", onMove);
+      area.removeEventListener("pointerup", onUp);
+      area.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("keydown", onKey);
+    }
+  };
+}
+
+/* ============ 7. НАЙДИ ФИГУРУ (логика, матрица 4×4) ============ */
+function figureGame(){
+  const shapesAll = ["circle", "square", "triangle", "diamond", "star"];
+  const colorsAll = ["#ff5c7a", "#4aa8ff", "#ffd54a", "#4ade80"];
+  const N = 4;
+  let level = 1, score = 0, ok = 0;
+  api.setLevel("Уровень 1"); api.setScore("Очки: 0");
+
+  function figsHTML(shape, color, count){
+    let s = '<div class="figs">';
+    for (let i = 0; i < count; i++) s += '<span class="fig ' + shape + '" style="background:' + color + '"></span>';
+    return s + "</div>";
+  }
+  function round(){
+    api.setLevel("Уровень " + level);
+    const sh = shuffle(shapesAll).slice(0, N);
+    const col = shuffle(colorsAll).slice(0, N);
+    const useCount = level >= 2;
+    const shapeOf = r => sh[r];
+    const colorOf = c => col[c];
+    const countOf = (r, c) => useCount ? ((r + c) % N) + 1 : 1;
+
+    const total = N * N;
+    const missing = Math.floor(Math.random() * total);
+
+    stage.innerHTML = "";
+    const grid = el("div", "fig-grid");
+    grid.style.gridTemplateColumns = "repeat(" + N + ",1fr)";
+    for (let i = 0; i < total; i++){
+      const r = Math.floor(i / N), c = i % N;
+      const cell = el("div", "fig-cell");
+      if (i === missing){ cell.classList.add("missing"); cell.textContent = "?"; }
+      else cell.innerHTML = figsHTML(shapeOf(r), colorOf(c), countOf(r, c));
+      grid.append(cell);
+    }
+    stage.append(grid);
+
+    const mr = Math.floor(missing / N), mc = missing % N;
+    const correct = { shape: shapeOf(mr), color: colorOf(mc), count: countOf(mr, mc) };
+
+    const near = [];
+    sh.forEach(s => { if (s !== correct.shape) near.push({ shape: s, color: correct.color, count: correct.count }); });
+    col.forEach(x => { if (x !== correct.color) near.push({ shape: correct.shape, color: x, count: correct.count }); });
+    if (useCount){
+      for (let n = 1; n <= N; n++) if (n !== correct.count) near.push({ shape: correct.shape, color: correct.color, count: n });
+    }
+    const opts = shuffle(near).slice(0, 5);
+    opts.push(correct);
+
+    const optWrap = el("div", "fig-opts");
+    shuffle(opts).forEach(o => {
+      const b = el("button", "fig-opt", figsHTML(o.shape, o.color, o.count));
+      b.onclick = () => {
+          if (o.shape === correct.shape && o.color === correct.color && o.count === correct.count){
+            sfxGood(); score++; ok++; api.setScore("Очки: " + score);
+            if (ok >= 4){ ok = 0; level = Math.min(3, level + 1); }
+            if (level >= 3 && ok === 0){ recordCompletion("figure", { stars: 2, best: score }); }
+            round();
+          } else {
+          sfxBad(); b.classList.add("wrong");
+          setTimeout(() => b.classList.remove("wrong"), 400);
+        }
+      };
+      optWrap.append(b);
+    });
+    stage.append(optWrap);
+  }
+  round();
+  return { stop(){} };
+}
+
+/* ============ 8. МЕЛОДИЯ ИЗ 6 НОТ ============ */
+function simon6Game(){
+  const pads = [
+    { e: "🌟", cls: "pad-y", f: 392 }, { e: "🌙", cls: "pad-b", f: 294 }, { e: "🔥", cls: "pad-r", f: 330 },
+    { e: "🍀", cls: "pad-g", f: 349 }, { e: "💧", cls: "pad-c", f: 261 }, { e: "⚡", cls: "pad-p", f: 440 }
+  ];
+  let seq = [], input = [], showing = false, session = 0, stopped = false, best = 0;
+  stage.innerHTML = "";
+  const info = el("div", "simon-info", "Смотри и повторяй!");
+  const grid = el("div", "simon-grid");
+  const padEls = pads.map((p, i) => {
+    const b = el("button", "simon-pad " + p.cls, p.e);
+    b.onclick = () => press(i);
+    grid.append(b);
+    return b;
+  });
+  stage.append(info, grid);
+  api.setLevel("Длина: 1");
+
+  function flash(i, cb){
+    if (stopped) return;
+    const b = padEls[i];
+    b.classList.add("lit"); beep(pads[i].f, 0.3, "sine", 0.16);
+    setTimeout(() => { b.classList.remove("lit"); setTimeout(cb || (() => {}), 150); }, 320);
+  }
+  function showSeq(done){
+    showing = true;
+    const my = ++session;
+    let i = 0;
+    (function next(){
+      if (stopped || my !== session) return;
+      if (i >= seq.length){ showing = false; if (done) done(); return; }
+      flash(seq[i], () => { i++; next(); });
+    })();
+  }
+  function addStep(){
+    seq.push(Math.floor(Math.random() * 6));
+    input = [];
+    best = Math.max(best, seq.length);
+    api.setLevel("Длина: " + seq.length);
+    info.textContent = "Смотри внимательно…";
+    showSeq(() => { info.textContent = "Твой ход!"; });
+  }
+  function press(i){
+    if (showing || stopped) return;
+    flash(i); input.push(i);
+    const k = input.length - 1;
+    if (seq[k] !== i){
+      sfxBad();
+      recordCompletion("simon", { stars: seq.length >= 6 ? 3 : seq.length >= 4 ? 2 : 1, best: seq.length - 1 });
+      setTimeout(() => showWin({ emoji: "🎹", title: "Твоя длина: " + (seq.length - 1), nextLabel: "Ещё раз", onNext: reset }), 500);
+      return;
+    }
+    if (input.length === seq.length){
+      sfxGood();
+      showing = true;
+      setTimeout(() => { if (stopped) return; showing = false; addStep(); }, 700);
+    }
+  }
+  function reset(){ seq = []; input = []; showing = false; session++; stopped = false; api.setLevel("Длина: 1"); info.textContent = "Смотри и повторяй!"; setTimeout(addStep, 500); }
+  setTimeout(addStep, 500);
+  return { stop(){ stopped = true; session++; } };
+}
+
+/* ============ 9. ЧИСЛОВОЙ РЯД ============ */
+function sequenceGame(){
+  let level = 1, score = 0, ok = 0;
+  api.setLevel("Уровень 1"); api.setScore("Очки: 0");
+  function gen(){
+    const t = level <= 1 ? "add" : level === 2 ? "sub" : level === 3 ? "mul" : level === 4 ? "grow" : level === 5 ? "fib" : "square";
+    let seq = [];
+    if (t === "add"){ const a = randInt(1, 9), s = randInt(2, 9); for (let i = 0; i < 5; i++) seq.push(a + s * i); }
+    else if (t === "sub"){ const s = randInt(3, 9), a = randInt(s * 4 + 1, s * 4 + 20); for (let i = 0; i < 5; i++) seq.push(a - s * i); }
+    else if (t === "mul"){ const a = randInt(1, 3); for (let i = 0; i < 5; i++) seq.push(a * Math.pow(2, i)); }
+    else if (t === "grow"){ const a = randInt(1, 5), s = randInt(2, 4); let cur = a; seq.push(cur); for (let i = 1; i < 5; i++){ cur += s + (i - 1); seq.push(cur); } }
+    else if (t === "fib"){ const a = randInt(1, 4), b = randInt(2, 5); seq = [a, b]; for (let i = 2; i < 5; i++) seq.push(seq[i-1] + seq[i-2]); }
+    else { const a = randInt(1, 4); for (let i = 1; i <= 5; i++) seq.push((i + a) * (i + a)); }
+    return seq;
+  }
+  function round(){
+    api.setLevel("Уровень " + level);
+    const seq = gen();
+    const hideAt = randInt(1, 3);
+    const answer = seq[hideAt];
+    stage.innerHTML = "";
+    const row = el("div", "seq-row");
+    seq.forEach((v, i) => row.append(el("div", "seq-item", i === hideAt ? "?" : String(v))));
+    const opts = el("div", "seq-opts");
+    const set = new Set([answer]);
+    const spread = Math.max(2, Math.round(Math.abs(answer) * 0.4) + 1);
+    let g = 0;
+    while (set.size < 4 && g++ < 100){
+      const d = answer + randInt(-spread, spread);
+      if (d > 0 && d !== answer) set.add(d);
+    }
+    while (set.size < 4) set.add(answer + set.size + 2);
+    shuffle([...set]).forEach(v => {
+      const b = el("button", "chest", "➗<span>" + v + "</span>");
+      b.onclick = () => {
+          if (v === answer){
+            sfxGood(); score++; ok++; api.setScore("Очки: " + score);
+            if (ok >= 5){ ok = 0; level = Math.min(6, level + 1); }
+            if (level >= 6 && ok === 0){ recordCompletion("sequence", { stars: 2, best: score }); }
+            round();
+          } else {
+          sfxBad(); b.classList.add("wrong");
+          setTimeout(() => b.classList.remove("wrong"), 400);
+        }
+      };
+      opts.append(b);
+    });
+    stage.append(row, opts);
+  }
+  round();
+  return { stop(){} };
+}
+
+/* ============ 10. ПЯТНАШКИ 4×4 ============ */
+function fifteenGame(){
+  let board, blank, moves = 0, stopped = false;
+  function nb(i){
+    const r = Math.floor(i / 4), c = i % 4, res = [];
+    if (r > 0) res.push(i - 4);
+    if (r < 3) res.push(i + 4);
+    if (c > 0) res.push(i - 1);
+    if (c < 3) res.push(i + 1);
+    return res;
+  }
+  function solved(b){ for (let i = 0; i < 15; i++) if (b[i] !== i + 1) return false; return b[15] === null; }
+  function scramble(){
+    const b = [...Array(15).keys()].map(x => x + 1); b.push(null);
+    let bl = 15;
+    for (let k = 0; k < 400; k++){ const p = pick(nb(bl)); const t = b[p]; b[p] = b[bl]; b[bl] = t; bl = p; }
+    if (solved(b)) return scramble();
+    return { b, bl };
+  }
+  function render(){
+    const g = el("div", "f15-grid");
+    board.forEach((v, i) => {
+      const t = el("button", "f15-tile" + (v === null ? " blank" : ""), v === null ? "" : String(v));
+      if (v !== null) t.style.background = "hsl(" + ((v - 1) * 24) + ",70%,58%)";
+      t.onclick = () => click(i);
+      g.append(t);
+    });
+    stage.innerHTML = "";
+    stage.append(g);
+  }
+  function click(i){
+    if (stopped) return;
+    if (nb(blank).indexOf(i) === -1){ sfxBad(); return; }
+    const t = board[i]; board[i] = board[blank]; board[blank] = t; blank = i;
+    sfxTap(); moves++; api.setScore("Ходы: " + moves); render();
+    if (solved(board)){
+      sfxGood();
+      recordCompletion("fifteen", { stars: moves <= 80 ? 3 : moves <= 120 ? 2 : 1, best: moves });
+      setTimeout(() => showWin({ emoji: "🐲", title: "Пятнашки собраны!", nextLabel: "Ещё раз", onNext: reset }), 250);
+    }
+  }
+  function reset(){
+    const s = scramble(); board = s.b; blank = s.bl; moves = 0;
+    api.setScore("Ходы: 0"); render();
+  }
+  api.setLevel("1 → 15");
+  reset();
+  return { stop(){ stopped = true; } };
+}
+
+/* ============ РЕЕСТР ИГР ============ */
+const GAMES = {
+  shop:     { emoji: "🛒", title: "Волшебная лавка",  desc: "Посчитай покупку и сдачу", start: shopGame },
+  multiply: { emoji: "✖️", title: "Умножай-ка",        desc: "Примеры на × и ÷", start: multiplyGame },
+  sudoku:   { emoji: "🧩", title: "Судоку 4×4",       desc: "Верни знаки силы в древний кристалл", start: sudokuGame },
+  maze:     { emoji: "🔑", title: "Лабиринт с ключами", desc: "Собери 3 ключа и дойди до замка", start: mazeKeysGame },
+  memory:   { emoji: "🧠", title: "Мемори на время",  desc: "Все 15 пар до конца таймера", start: memoryTimedGame },
+  dodge:    { emoji: "💣", title: "Уворачивайся",      desc: "Лови кристаллы, не трогай бомбы", start: dodgeGame },
+  figure:   { emoji: "🧠", title: "Найди фигуру",      desc: "Найди фигуру, которую унёс ветер", start: figureGame },
+  simon:    { emoji: "🎹", title: "Мелодия из 6 нот",  desc: "Повтори длинную последовательность", start: simon6Game },
+  sequence: { emoji: "➗", title: "Числовой ряд",      desc: "Найди пропущенное число", start: sequenceGame },
+  fifteen:  { emoji: "🐲", title: "Пятнашки 4×4",      desc: "Сложи камень судьбы и получи последний кристалл", start: fifteenGame }
+};
+
+/* ============ КАРТА ПРИКЛЮЧЕНИЙ ============ */
+const MAP_POS = [
+  { x: 16, y: 11 }, { x: 50, y: 7 },  { x: 81, y: 13 },
+  { x: 82, y: 34 }, { x: 50, y: 38 }, { x: 18, y: 33 },
+  { x: 13, y: 57 }, { x: 48, y: 61 }, { x: 83, y: 56 },
+  { x: 50, y: 87 }
+];
+const MAP_DECO = [
+  { e: "🌴", x: 6,  y: 70, s: 30 }, { e: "🏝️", x: 90, y: 42, s: 26 },
+  { e: "⛵", x: 30, y: 20, s: 22 }, { e: "☁️", x: 72, y: 4,  s: 30 },
+  { e: "☁️", x: 12, y: 46, s: 24 }, { e: "🌊", x: 68, y: 74, s: 26 },
+  { e: "🐚", x: 34, y: 90, s: 20 }, { e: "🦜", x: 88, y: 88, s: 22 }
+];
+const SVGNS = "http://www.w3.org/2000/svg";
+function buildAdventureMap(){
+  const map = document.getElementById("adventureMap");
+  if (!map) return;
+  map.innerHTML = "";
+  const ids = Object.keys(GAMES);
+
+  // фон-декор
+  MAP_DECO.forEach(d => {
+    const dec = el("div", "map-deco", d.e);
+    dec.style.left = d.x + "%"; dec.style.top = d.y + "%";
+    dec.style.fontSize = d.s + "px";
+    map.append(dec);
+  });
+
+  // тропинки между островками
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("class", "map-paths");
+  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("preserveAspectRatio", "none");
+  for (let i = 0; i < ids.length - 1; i++){
+    const a = MAP_POS[i], b = MAP_POS[i + 1];
+    const line = document.createElementNS(SVGNS, "line");
+    line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+    line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+    line.setAttribute("class", "map-trail" + (progress.completed[ids[i]] ? " lit" : ""));
+    svg.append(line);
+  }
+  map.append(svg);
+
+  // первый непройденный островок — «текущий»
+  let currentIdx = ids.findIndex(id => !progress.completed[id]);
+
+  // островки
+  ids.forEach((id, idx) => {
+    const g = GAMES[id];
+    const done = progress.completed[id];
+    const is = el("button", "map-island" + (done ? " done" : "") + (idx === currentIdx ? " current" : ""));
+    const stars = done ? "★".repeat(done.stars || 0) + "☆".repeat(Math.max(0, 3 - (done.stars || 0))) : "☆☆☆";
+    is.innerHTML = '<div class="mi-emoji">' + g.emoji + '</div><div class="mi-name">' + g.title + '</div><div class="mi-stars">' + stars + '</div>';
+    is.onclick = () => { sfxTap(); openGame(id); };
+    is.style.left = MAP_POS[idx].x + "%";
+    is.style.top = MAP_POS[idx].y + "%";
+    map.append(is);
+  });
+
+  // герой на текущем островке
+  if (currentIdx >= 0){
+    const hero = el("div", "map-hero", charEmoji());
+    hero.style.left = MAP_POS[currentIdx].x + "%";
+    hero.style.top = (MAP_POS[currentIdx].y - 7) + "%";
+    map.append(hero);
+  }
+}
+const CHAR_CLICK_MSGS = [
+  "Ты справишься, я в тебя верю!",
+  "Собери все 10 кристаллов!",
+  "Начни с любого островка!",
+  "Каждая победа даёт звёздочку ⭐",
+  "Не бойся ошибаться — пробуй снова!",
+  "Вперёд, к приключениям!",
+  "Ты настоящий волшебник!"
+];
+function charTap(){
+  const bubble = document.getElementById("charBubble");
+  const sprite = document.getElementById("charSprite");
+  if (sprite){ sprite.classList.remove("tap"); void sprite.offsetWidth; sprite.classList.add("tap"); }
+  if (bubble) bubble.textContent = pick(CHAR_CLICK_MSGS);
+}
+function updateCharBubble(){
+  const bubble = document.getElementById("charBubble");
+  const sprite = document.getElementById("charSprite");
+  if (sprite) sprite.textContent = charEmoji();
+  if (!bubble) return;
+  const done = Object.keys(progress.completed || {}).length;
+  const total = Object.keys(GAMES).length;
+  if (done === 0) bubble.textContent = "Привет, юный волшебник!";
+  else if (done === total) bubble.textContent = "Ура! Все островки пройдены! Ты настоящий герой!";
+  else bubble.textContent = pick([
+    "Класс! Ты уже на пути к победе!",
+    "Ого! Отличный результат!",
+    "Ты молодец, так держать!",
+    "Ещё чуть-чуть и все островки покорены!",
+    "Осталось " + (total - done) + " островков!"
+  ]);
+}
+
+/* ============ ИСТОРИЯ ПРИКЛЮЧЕНИЯ ============ */
+const STORY_BEATS = {
+  shop:     "Закупи зелья и сокровища в путь.",
+  multiply: "Сосчитай магическую силу зелий.",
+  sudoku:   "Древний кристалл уснул, а знаки силы пропали. Верни их на места и разбуди магию!",
+  maze:     "Найди три ключа и открой врата замка.",
+  memory:   "Запомни пары карт заклинаний до конца песочных часов.",
+  dodge:    "Лови кристаллы в небе и уворачивайся от бомб.",
+  figure:   "Злой ветер заколдовал ковёр-самолёт и унёс одну фигуру. Найди, какая потерялась!",
+  simon:    "Повтори мелодию из шести нот, хранящую сон доброго дракона.",
+  sequence: "Найди пропущенное число в заклинании.",
+  fifteen:  "Сложи камень судьбы и заполучи последний кристалл!"
+};
+function buildStory(){
+  const box = document.getElementById("storyBox");
+  const head = document.getElementById("storyHead");
+  if (box && head) head.onclick = () => { sfxTap(); box.classList.toggle("collapsed"); };
+}
+
+/* ============ ГЛАВНЫЙ ЭКРАН ============ */
+(function buildHome(){
+  // карта вместо сетки
+  buildAdventureMap();
+  buildStory();
+  updateHomeProgress();
+  updateCharBubble();
+  updateSoundBtnIcon();
+  const box = document.getElementById("charBox");
+  if (box) box.onclick = () => { sfxTap(); charTap(); };
+})();
+
+/* ============ КНОПКА ЗВУКА ============ */
+const soundBtn = document.getElementById("soundBtn");
+function updateSoundBtnIcon(){
+  const b = document.getElementById("soundBtn");
+  if (b) b.textContent = (soundOn || progress.musicOn) ? "🔊" : "🔇";
+}
+soundBtn.onclick = () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = soundOn ? "🔊" : "🔇";
+  if (soundOn) sfxTap();
+  try { toggleMusic(); } catch(e){}
+  updateSoundBtnIcon();
+};
+
+// === награды и прогресс
+function updateHomeProgress(){
+  const total = Object.keys(GAMES).length;
+  const done = Object.keys(progress.completed || {}).length;
+  const progEl = document.getElementById("homeProgress");
+  const doneEl = document.getElementById("homeDone");
+  const fillEl = document.getElementById("hpFill");
+  if (progEl) progEl.textContent = done + " / " + total;
+  if (doneEl) doneEl.textContent = done === 0 ? "Начни приключение!" : "Пройдено " + done + " из " + total;
+  if (fillEl) fillEl.style.width = Math.round((total === 0 ? 0 : (done / total) * 100)) + "%";
+  if (typeof buildAdventureMap === "function") buildAdventureMap();
+  if (typeof updateCharBubble === "function") updateCharBubble();
+}
+function renderRewards(){
+  const starsTotal = document.getElementById("starsTotal");
+  const achList = document.getElementById("achList");
+  let stars = 0;
+  Object.values(progress.completed || {}).forEach(c => { stars += c.stars || 0; });
+  if (starsTotal) starsTotal.textContent = stars;
+  if (achList){
+    achList.innerHTML = "";
+    Object.keys(GAMES).forEach(id => {
+      const c = progress.completed[id];
+      const g = GAMES[id];
+      const item = el("div", "ach-item" + (c ? " got" : ""));
+      const emoji = c ? (c.stars >= 3 ? "🏆" : c.stars >= 2 ? "⭐" : "✨") : "🔒";
+      item.innerHTML = '<div class="ach-emoji">' + emoji + '</div><div class="ach-info"><div class="ach-title">' + g.title + '</div><div class="ach-sub">' + (c ? ('Звёзд: ' + (c.stars||0) + (c.best ? ', рекорд: '+c.best : '')) : 'Ещё не пройдено') + '</div></div>';
+      achList.append(item);
+    });
+    if (progress.title){
+      const tit = el("div", "ach-item got");
+      tit.innerHTML = '<div class="ach-emoji">👑</div><div class="ach-info"><div class="ach-title">' + progress.title + '</div><div class="ach-sub">Все 10 кристаллов собраны — королевство проснулось!</div></div>';
+      achList.append(tit);
+    }
+  }
+}
+
+// === кнопки
+document.getElementById("rewardsBtn").onclick = () => { sfxTap(); renderRewards(); showScreen("rewardsScreen"); };
+document.getElementById("backRewardsBtn").onclick = () => { sfxTap(); showScreen("home"); };
+
+// === начать игру заново (сброс прогресса)
+const resetBtn = document.getElementById("resetBtn");
+if (resetBtn) resetBtn.onclick = () => {
+  sfxTap();
+  const sure = confirm("Начать игру с начала?\nВсе 10 кристаллов, звёзды и титул будут удалены.\nНастройка звука сохранится.");
+  if (!sure) return;
+  sfxTap();
+  progress = { completed: {}, unlockedRewards: [], character: "wizard", musicOn: progress.musicOn, title: "" };
+  finaleShown = false;
+  saveProgress();
+  goHome();
+  updateHomeProgress();
+  updateSoundBtnIcon();
+  charSay("hello");
+};
+
+
+// выбор персонажа
+
+
+// фоновая музыка — сказочно-бодрая: колокольчики, бодрый бас «бум-чак» и лёгкие маримбы
+let bgMusic = null; // AudioContext
+let musicTimer = null;
+const NOTE_C4 = 261.63;
+function nf(semi){ return NOTE_C4 * Math.pow(2, semi / 12); }
+const M_EIGHTH = (60 / 132) / 2;   // восьмая при 132 bpm
+const M_BAR = M_EIGHTH * 8;        // такт из 4 долей
+const M_BASS = [0, 7, 9, 5];       // C, G, Am, F
+const M_PADS = [[0, 4, 7], [7, 11, 14], [9, 12, 16], [5, 9, 12]];
+const M_MELODY = [
+  [0, 7, 12, 9, 7, 4, 9, 4],
+  [7, 11, 14, 16, 14, 11, 12, 7],
+  [9, 12, 16, 12, 16, 12, 9, 12],
+  [5, 9, 12, 17, 14, 12, 9, 7]
+];
+function route(ctx, node, panVal){
+  let out = ctx.destination;
+  try{
+    const p = ctx.createStereoPanner();
+    p.pan.value = panVal == null ? 0 : panVal;
+    p.connect(ctx.destination);
+    node.connect(p);
+  }catch(e){ node.connect(out); }
+}
+function playBell(ctx, semi, t){
+  const freq = nf(semi);
+  const dur = 1.15;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.05, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  const o1 = ctx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq;
+  const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = freq * 2;
+  o1.connect(g); o2.connect(g);
+  const gs = ctx.createGain();
+  gs.gain.setValueAtTime(0.0001, t + 0.28);
+  gs.gain.linearRampToValueAtTime(0.018, t + 0.3);
+  gs.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  const o3 = ctx.createOscillator(); o3.type = "sine"; o3.frequency.value = freq * 2.01;
+  o3.connect(gs);
+  route(ctx, g, Math.sin(semi) * 0.5);
+  route(ctx, gs, Math.sin(semi + 1) * 0.5);
+  o1.start(t); o1.stop(t + dur + 0.05);
+  o2.start(t); o2.stop(t + dur + 0.05);
+  o3.start(t + 0.28); o3.stop(t + dur + 0.05);
+}
+function playPad(ctx, chord, t, dur){
+  const vol = 0.024;
+  chord.forEach(semi => {
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.5);
+    g.gain.setValueAtTime(vol, t + dur - 0.6);
+    g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = nf(semi);
+    o.connect(g); route(ctx, g, 0);
+    o.start(t); o.stop(t + dur + 0.05);
+  });
+}
+function playBass(ctx, semi, t, dur){
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.05, t + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = nf(semi - 12);
+  o.connect(g); route(ctx, g, 0);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+function playChuck(ctx, chord, t, vol){
+  chord.forEach(semi => {
+    const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = nf(semi - 12);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol || 0.026, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.connect(g); route(ctx, g, 0);
+    o.start(t); o.stop(t + 0.4);
+  });
+}
+function playMusicLoop(){
+  if (!bgMusic) return;
+  let t = bgMusic.currentTime + 0.05;
+  for (let b = 0; b < 4; b++){
+    const bar = t + b * M_BAR;
+    playPad(bgMusic, M_PADS[b], bar, M_BAR * 0.9);
+    playBass(bgMusic, M_BASS[b], bar, M_BAR * 0.45);
+    playBass(bgMusic, M_BASS[b], bar + M_BAR * 0.5, M_BAR * 0.42);
+    playChuck(bgMusic, M_PADS[b], bar + M_EIGHTH * 2);
+    playChuck(bgMusic, M_PADS[b], bar + M_EIGHTH * 6);
+    M_MELODY[b].forEach((semi, i) => playBell(bgMusic, semi, bar + i * M_EIGHTH));
+  }
+  musicTimer = setTimeout(playMusicLoop, (M_BAR * 4) * 1000 - 30);
+}
+function startMusic(){
+  if (bgMusic) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    bgMusic = ctx;
+    if (ctx.state === "suspended") ctx.resume();
+    playMusicLoop();
+  } catch(e){ bgMusic = null; }
+}
+function stopMusic(){
+  if (musicTimer){ clearTimeout(musicTimer); musicTimer = null; }
+  if (bgMusic){ try{ bgMusic.close(); }catch(e){} bgMusic = null; }
+}
+function toggleMusic(){
+  if (!progress.musicOn){ startMusic(); progress.musicOn = true; }
+  else { stopMusic(); progress.musicOn = false; }
+  saveProgress();
+}
+function resumeMusicIfNeeded(){
+  if (progress.musicOn && bgMusic && bgMusic.state === "suspended"){ try{ bgMusic.resume(); }catch(e){} }
+}
+document.addEventListener("pointerdown", resumeMusicIfNeeded);
+document.addEventListener("keydown", resumeMusicIfNeeded);
+
+// === инициализация прогресса
+loadProgress();
+updateHomeProgress();
+updateSoundBtnIcon();
+if (progress.musicOn) startMusic();
+</script>
+</body>
+</html>
